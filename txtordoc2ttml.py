@@ -129,38 +129,38 @@ def txt_to_ttml(
 # -------------------- STREAMLIT UI --------------------
 
 st.set_page_config(page_title="DOCX/TXT → TTML", layout="centered")
-st.title("Convertisseur DOCX/TXT → TTML (timing via speech rate)")
+st.title("TXT → TTML Converter (timing via speech rate)")
 
-uploaded = st.file_uploader("Uploader un fichier .txt ou .docx", type=["txt", "docx"])
+uploaded = st.file_uploader("Upload your .txt or .docx file", type=["txt", "docx"])
 
 split_label = st.selectbox(
-    "Découpage des répliques",
-    ["Par lignes vides (1 paragraphe = 1 réplique)", "Chaque ligne = 1 réplique"],
+    "Break down the lines",
+        ["By blank lines (1 paragraph = 1 line)", "Each line = 1 line"],
 )
 
 rate_label = st.selectbox(
     "Speech rate",
-    ["WPM (mots/minute)", "CPS (caractères/seconde)"],
+    ["CPS (characters/second)", "WPM (words/minute)"],
 )
 
 col1, col2 = st.columns(2)
 with col1:
     if rate_label.startswith("WPM"):
-        rate_value = st.number_input("Valeur WPM", min_value=60, max_value=300, value=160, step=5)
+        rate_value = st.number_input("WPM Value", min_value=60, max_value=300, value=160, step=5)
     else:
-        rate_value = st.number_input("Valeur CPS", min_value=5.0, max_value=30.0, value=17.0, step=0.5)
+        rate_value = st.number_input("CPS Value", min_value=5.0, max_value=30.0, value=17.0, step=0.5)
 
 with col2:
     gap = st.number_input(
-        "Espace entre répliques (secondes)",
+        "Space between lines (seconds)",
         min_value=0.2,
         max_value=5.0,
         value=1.0,
         step=0.1,
     )
 
-lang = st.text_input("Langue (xml:lang)", value="fr")
-max_dur = st.number_input("Durée max par réplique (secondes)", min_value=5.0, max_value=60.0, value=30.0, step=1.0)
+lang = st.text_input("Language (xml:lang)", value="eng")
+max_dur = st.number_input("max duaration per line (seconds)", min_value=5.0, max_value=60.0, value=30.0, step=1.0)
 
 if uploaded:
     data = uploaded.getvalue()
@@ -172,8 +172,7 @@ if uploaded:
             raw = docx_bytes_to_text(data)
         except Exception as e:
             st.error(
-                "Impossible de lire le .docx. Vérifie que c'est bien un .docx (pas .doc) "
-                "et que python-docx est installé.\n\n"
+                "Unable to read the .docx file. Please check that it is indeed a .docx file (not a .doc file).\n\n"
                 f"Détail: {e}"
             )
             st.stop()
@@ -193,7 +192,7 @@ if uploaded:
     st.caption(f"Répliques détectées (approx) : {count}")
 
     # 4) Génération
-    if st.button("Générer TTML"):
+    if st.button("Generate TTML"):
         if rate_mode == "WPM":
             ttml = txt_to_ttml(
                 raw,
@@ -217,11 +216,11 @@ if uploaded:
 
         base = uploaded.name.rsplit(".", 1)[0]
         st.download_button(
-            "Télécharger le .ttml",
+            "Download .ttml",
             data=ttml.encode("utf-8"),
             file_name=base + ".ttml",
             mime="application/xml",
         )
 
-        st.subheader("Aperçu")
+        st.subheader("Preview")
         st.code(ttml[:4000], language="xml")
